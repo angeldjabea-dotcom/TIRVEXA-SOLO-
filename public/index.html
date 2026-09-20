@@ -1,153 +1,402 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TIRVEXA</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIRVEXA — Solo</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #080b10;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #05080d;
+  color: white;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
 
-    .game {
-      width: 100%;
-      max-width: 500px;
-      min-height: 100vh;
-      padding: 25px 20px;
-      background: linear-gradient(180deg, #111823, #05070a);
-      text-align: center;
-    }
+#menu {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
 
-    .logo {
-      font-size: 42px;
-      font-weight: 900;
-      letter-spacing: 5px;
-      color: #ffd400;
-      margin-top: 30px;
-    }
+.logo {
+  font-size: 48px;
+  font-weight: 900;
+  color: #ffd400;
+  letter-spacing: 5px;
+  text-shadow: 0 0 20px #ffb000;
+}
 
-    .version {
-      color: #aaa;
-      margin-bottom: 50px;
-    }
+.subtitle {
+  color: #aaa;
+  margin-bottom: 35px;
+}
 
-    .player {
-      background: #151c27;
-      border: 1px solid #303b4c;
-      border-radius: 15px;
-      padding: 18px;
-      margin-bottom: 25px;
-    }
+button {
+  width: 260px;
+  padding: 18px;
+  margin: 8px;
+  border: none;
+  border-radius: 12px;
+  background: #ffd400;
+  color: #080808;
+  font-size: 19px;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-    .player strong {
-      color: #ffd400;
-      font-size: 20px;
-    }
+button:active {
+  transform: scale(.96);
+}
 
-    h1 {
-      font-size: 30px;
-      margin: 30px 0 10px;
-    }
+#game {
+  display: none;
+  height: 100vh;
+  position: relative;
+  background:
+    radial-gradient(circle at center, #18202a 0%, #05080d 75%);
+}
 
-    .subtitle {
-      color: #aaa;
-      margin-bottom: 30px;
-    }
+#hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 14px 8px;
+  background: rgba(0,0,0,.75);
+  border-bottom: 1px solid #333;
+  font-weight: bold;
+}
 
-    button {
-      width: 100%;
-      padding: 17px;
-      margin: 8px 0;
-      border: 0;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+.hudItem {
+  text-align: center;
+}
 
-    .solo {
-      background: #ffd400;
-      color: #080b10;
-    }
+.hudValue {
+  color: #ffd400;
+  font-size: 22px;
+}
 
-    .training {
-      background: #252e3b;
-      color: white;
-    }
+#arena {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
 
-    .status {
-      margin-top: 25px;
-      padding: 12px;
-      border-radius: 10px;
-      background: #101820;
-      color: #52e27a;
-      font-size: 14px;
-    }
+#target {
+  position: absolute;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle,
+      #111 0 12%,
+      white 13% 25%,
+      #e51b23 26% 45%,
+      white 46% 63%,
+      #e51b23 64% 100%);
+  border: 3px solid white;
+  box-shadow: 0 0 20px rgba(255,0,0,.7);
+  display: none;
+  transform: translate(-50%, -50%);
+  cursor: crosshair;
+}
 
-    footer {
-      margin-top: 45px;
-      color: #777;
-      font-size: 12px;
-      line-height: 1.6;
-    }
-  </style>
+#message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  text-align: center;
+}
+
+#messageBox {
+  background: rgba(0,0,0,.82);
+  padding: 30px;
+  border-radius: 18px;
+  border: 1px solid #555;
+  display: none;
+}
+
+#messageBox h1 {
+  color: #ffd400;
+  margin-top: 0;
+}
+
+#resultScore {
+  font-size: 28px;
+  margin: 15px;
+}
+
+#credits {
+  position: absolute;
+  bottom: 12px;
+  color: #777;
+  font-size: 12px;
+}
+</style>
 </head>
 
 <body>
 
-  <main class="game">
+<div id="menu">
 
-    <div class="logo">TIRVEXA</div>
-    <div class="version">VERSION 1.0 — SOLO</div>
+  <div class="logo">TIRVEXA</div>
 
-    <div class="player">
-      👤 <strong>DJABEA ANGEL</strong>
-      <br>
-      Niveau 1
+  <div class="subtitle">
+    VERSION 1.1 — SOLO
+  </div>
+
+  <button onclick="startGame()">
+    🎯 LANCER LA PARTIE
+  </button>
+
+  <button onclick="training()">
+    🏋️ ENTRAÎNEMENT
+  </button>
+
+  <div id="credits">
+    Propriétaire : DJABEA ANGEL<br>
+    Créateur : DJABEA ANGEL<br>
+    © 2026 TIRVEXA — Tous droits réservés.
+  </div>
+
+</div>
+
+
+<div id="game">
+
+  <div id="hud">
+
+    <div class="hudItem">
+      SCORE<br>
+      <span id="score" class="hudValue">0</span>
     </div>
 
-    <h1>PRÊT À TIRER ?</h1>
-    <div class="subtitle">
-      Choisis ton mode de jeu
+    <div class="hudItem">
+      TEMPS<br>
+      <span id="time" class="hudValue">30</span>
     </div>
 
-    <button class="solo" onclick="startGame('Solo')">
-      🎯 SOLO
-    </button>
-
-    <button class="training" onclick="startGame('Entraînement')">
-      🏋️ ENTRAÎNEMENT
-    </button>
-
-    <div class="status">
-      ● SERVEUR TIRVEXA — EN LIGNE
+    <div class="hudItem">
+      VIES<br>
+      <span id="lives" class="hudValue">❤️❤️❤️</span>
     </div>
 
-    <footer>
-      Propriétaire : DJABEA ANGEL<br>
-      Créateur : DJABEA ANGEL<br>
-      © 2026 TIRVEXA — Tous droits réservés.
-    </footer>
+  </div>
 
-  </main>
+  <div id="arena">
 
-  <script>
-    function startGame(mode) {
-      alert("Mode " + mode + " sélectionné !");
+    <div id="target" onclick="shoot(event)"></div>
+
+    <div id="message">
+
+      <div id="messageBox">
+
+        <h1 id="resultTitle">PARTIE TERMINÉE</h1>
+
+        <div id="resultScore">
+          Score : 0
+        </div>
+
+        <button onclick="startGame()">
+          🔄 REJOUER
+        </button>
+
+        <button onclick="backMenu()">
+          🏠 MENU
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+let score = 0;
+let lives = 3;
+let timeLeft = 30;
+let gameRunning = false;
+let timer = null;
+
+const target = document.getElementById("target");
+const scoreText = document.getElementById("score");
+const timeText = document.getElementById("time");
+const livesText = document.getElementById("lives");
+const menu = document.getElementById("menu");
+const game = document.getElementById("game");
+const messageBox = document.getElementById("messageBox");
+const resultScore = document.getElementById("resultScore");
+
+
+function startGame() {
+
+  score = 0;
+  lives = 3;
+  timeLeft = 30;
+  gameRunning = true;
+
+  menu.style.display = "none";
+  game.style.display = "block";
+  messageBox.style.display = "none";
+
+  updateHUD();
+  moveTarget();
+
+  clearInterval(timer);
+
+  timer = setInterval(() => {
+
+    timeLeft--;
+
+    updateHUD();
+
+    if (timeLeft <= 0) {
+      endGame();
     }
-  </script>
+
+  }, 1000);
+}
+
+
+function updateHUD() {
+
+  scoreText.textContent = score;
+  timeText.textContent = timeLeft;
+
+  let hearts = "";
+
+  for (let i = 0; i < lives; i++) {
+    hearts += "❤️";
+  }
+
+  if (lives <= 0) {
+    hearts = "💀";
+  }
+
+  livesText.textContent = hearts;
+}
+
+
+function moveTarget() {
+
+  if (!gameRunning) return;
+
+  const arena = document.getElementById("arena");
+
+  const margin = 50;
+
+  const x =
+    margin +
+    Math.random() *
+    (arena.clientWidth - margin * 2);
+
+  const y =
+    margin +
+    Math.random() *
+    (arena.clientHeight - margin * 2);
+
+  target.style.left = x + "px";
+  target.style.top = y + "px";
+
+  target.style.display = "block";
+}
+
+
+function shoot(event) {
+
+  if (!gameRunning) return;
+
+  event.stopPropagation();
+
+  score += 10;
+
+  updateHUD();
+
+  moveTarget();
+}
+
+
+document.getElementById("arena").addEventListener("click", function(event) {
+
+  if (!gameRunning) return;
+
+  if (event.target === target) return;
+
+  lives--;
+
+  updateHUD();
+
+  if (lives <= 0) {
+    endGame();
+  }
+
+});
+
+
+function endGame() {
+
+  gameRunning = false;
+
+  clearInterval(timer);
+
+  target.style.display = "none";
+
+  resultScore.textContent =
+    "Score final : " + score;
+
+  messageBox.style.display = "block";
+}
+
+
+function backMenu() {
+
+  clearInterval(timer);
+
+  gameRunning = false;
+
+  game.style.display = "none";
+  menu.style.display = "flex";
+
+  target.style.display = "none";
+}
+
+
+function training() {
+
+  alert(
+    "MODE ENTRAÎNEMENT\n\n" +
+    "Cette partie sera ajoutée dans la prochaine étape."
+  );
+
+}
+
+</script>
 
 </body>
 </html>
