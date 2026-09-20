@@ -25,13 +25,12 @@ button {
   width: 270px;
   padding: 17px;
   margin: 7px;
-  border: none;
+  border: 0;
   border-radius: 12px;
   background: #ffd400;
   color: #080808;
   font-size: 18px;
   font-weight: bold;
-  cursor: pointer;
 }
 
 button:active {
@@ -74,8 +73,6 @@ button:active {
   font-size: 12px;
 }
 
-/* JEU */
-
 #game {
   display: none;
   height: 100vh;
@@ -115,8 +112,6 @@ button:active {
   bottom: 0;
 }
 
-/* CIBLE */
-
 #target {
   position: absolute;
   width: 82px;
@@ -135,10 +130,7 @@ button:active {
   box-shadow: 0 0 20px rgba(255,0,0,.7);
   display: none;
   transform: translate(-50%, -50%);
-  cursor: crosshair;
 }
-
-/* RESULTAT */
 
 #message {
   position: absolute;
@@ -185,28 +177,20 @@ button:active {
 
 <body>
 
-<!-- MENU PRINCIPAL -->
-
 <div id="menu">
 
   <div class="logo">TIRVEXA</div>
 
-  <div class="subtitle">
-    VERSION 1.3
-  </div>
+  <div class="subtitle">VERSION 1.4</div>
 
   <div class="best">
     🏆 MEILLEUR SCORE :
     <span id="bestMenu">0</span>
   </div>
 
-  <button onclick="startSolo()">
-    🎯 SOLO
-  </button>
+  <button onclick="startSolo()">🎯 SOLO</button>
 
-  <button onclick="startTraining()">
-    🏋️ ENTRAÎNEMENT
-  </button>
+  <button onclick="startTraining()">🏋️ ENTRAÎNEMENT</button>
 
   <div id="credits">
     Propriétaire : DJABEA ANGEL<br>
@@ -216,8 +200,6 @@ button:active {
 
 </div>
 
-
-<!-- JEU -->
 
 <div id="game">
 
@@ -255,14 +237,11 @@ button:active {
 
     <div id="target" onclick="shoot(event)"></div>
 
-
     <div id="message">
 
       <div id="messageBox">
 
-        <h1 id="resultTitle">
-          PARTIE TERMINÉE
-        </h1>
+        <h1 id="resultTitle">PARTIE TERMINÉE</h1>
 
         <div class="resultLine">
           Score :
@@ -289,17 +268,11 @@ button:active {
           <span id="resultBest" class="highlight">0</span>
         </div>
 
-        <div id="newRecord">
-          🔥 NOUVEAU RECORD !
-        </div>
+        <div id="newRecord">🔥 NOUVEAU RECORD !</div>
 
-        <button onclick="restartCurrentMode()">
-          🔄 REJOUER
-        </button>
+        <button onclick="restartCurrentMode()">🔄 REJOUER</button>
 
-        <button onclick="backMenu()">
-          🏠 MENU
-        </button>
+        <button onclick="backMenu()">🏠 MENU</button>
 
       </div>
 
@@ -319,7 +292,9 @@ let timeLeft = 30;
 let hits = 0;
 let shots = 0;
 let gameRunning = false;
+
 let timer = null;
+let targetMoveTimer = null;
 
 let bestScore =
   Number(localStorage.getItem("tirvexa_best_score")) || 0;
@@ -327,6 +302,7 @@ let bestScore =
 
 const menu = document.getElementById("menu");
 const game = document.getElementById("game");
+const arena = document.getElementById("arena");
 const target = document.getElementById("target");
 
 const scoreText = document.getElementById("score");
@@ -334,7 +310,6 @@ const timeText = document.getElementById("time");
 const livesText = document.getElementById("lives");
 const hitsText = document.getElementById("hits");
 const modeText = document.getElementById("modeText");
-
 const livesBox = document.getElementById("livesBox");
 
 const messageBox = document.getElementById("messageBox");
@@ -351,35 +326,21 @@ const bestMenu = document.getElementById("bestMenu");
 bestMenu.textContent = bestScore;
 
 
-/* SOLO */
-
 function startSolo() {
 
   mode = "solo";
 
-  startGame(
-    "SOLO",
-    30,
-    true
-  );
+  startGame("SOLO", 30, true);
 }
 
-
-/* ENTRAÎNEMENT */
 
 function startTraining() {
 
   mode = "training";
 
-  startGame(
-    "ENTRAÎNEMENT",
-    60,
-    false
-  );
+  startGame("ENTRAÎNEMENT", 60, false);
 }
 
-
-/* DEMARRER */
 
 function startGame(gameMode, duration, hasLives) {
 
@@ -390,27 +351,35 @@ function startGame(gameMode, duration, hasLives) {
   timeLeft = duration;
   gameRunning = true;
 
+  clearInterval(timer);
+  clearInterval(targetMoveTimer);
+
   menu.style.display = "none";
   game.style.display = "block";
-
   messageBox.style.display = "none";
 
   modeText.textContent = gameMode;
 
-  if (hasLives) {
-
-    livesBox.style.display = "block";
-
-  } else {
-
-    livesBox.style.display = "none";
-  }
+  livesBox.style.display =
+    hasLives ? "block" : "none";
 
   updateHUD();
 
   moveTarget();
 
-  clearInterval(timer);
+  /*
+    LA CIBLE BOUGE AUTOMATIQUEMENT
+    toutes les 1,2 secondes.
+  */
+
+  targetMoveTimer = setInterval(() => {
+
+    if (gameRunning) {
+      moveTarget();
+    }
+
+  }, 1200);
+
 
   timer = setInterval(() => {
 
@@ -419,7 +388,6 @@ function startGame(gameMode, duration, hasLives) {
     updateHUD();
 
     if (timeLeft <= 0) {
-
       endGame();
     }
 
@@ -427,14 +395,10 @@ function startGame(gameMode, duration, hasLives) {
 }
 
 
-/* HUD */
-
 function updateHUD() {
 
   scoreText.textContent = score;
-
   timeText.textContent = timeLeft;
-
   hitsText.textContent = hits;
 
   let hearts = "";
@@ -443,44 +407,39 @@ function updateHUD() {
     hearts += "❤️";
   }
 
-  if (lives <= 0) {
-    hearts = "💀";
-  }
-
-  livesText.textContent = hearts;
+  livesText.textContent =
+    lives > 0 ? hearts : "💀";
 }
 
-
-/* DEPLACER CIBLE */
 
 function moveTarget() {
 
   if (!gameRunning) return;
 
-  const arena =
-    document.getElementById("arena");
+  const margin = 55;
 
-  const margin = 50;
+  const maxX =
+    arena.clientWidth - margin;
+
+  const maxY =
+    arena.clientHeight - margin;
 
   const x =
     margin +
     Math.random() *
-    (arena.clientWidth - margin * 2);
+    Math.max(1, maxX - margin);
 
   const y =
     margin +
     Math.random() *
-    (arena.clientHeight - margin * 2);
+    Math.max(1, maxY - margin);
 
   target.style.left = x + "px";
-
   target.style.top = y + "px";
 
   target.style.display = "block";
 }
 
-
-/* TOUCHER LA CIBLE */
 
 function shoot(event) {
 
@@ -489,29 +448,27 @@ function shoot(event) {
   event.stopPropagation();
 
   shots++;
-
   hits++;
 
   if (mode === "solo") {
-
     score += 10;
-
   } else {
-
     score += 5;
   }
 
   updateHUD();
 
+  /*
+    Quand on touche la cible,
+    elle change immédiatement
+    de position.
+  */
+
   moveTarget();
 }
 
 
-/* TIR A COTE */
-
-document
-.getElementById("arena")
-.addEventListener("click", function(event) {
+arena.addEventListener("click", function(event) {
 
   if (!gameRunning) return;
 
@@ -520,9 +477,9 @@ document
   shots++;
 
   /*
-   * En entraînement :
-   * aucune vie perdue.
-   */
+    En entraînement :
+    aucune vie perdue.
+  */
 
   if (mode === "solo") {
 
@@ -531,7 +488,6 @@ document
     updateHUD();
 
     if (lives <= 0) {
-
       endGame();
     }
   }
@@ -539,13 +495,12 @@ document
 });
 
 
-/* FIN */
-
 function endGame() {
 
   gameRunning = false;
 
   clearInterval(timer);
+  clearInterval(targetMoveTimer);
 
   target.style.display = "none";
 
@@ -554,13 +509,7 @@ function endGame() {
       ? Math.round((hits / shots) * 100)
       : 0;
 
-
   let record = false;
-
-  /*
-   * Seul le SOLO peut créer
-   * un nouveau meilleur score.
-   */
 
   if (
     mode === "solo" &&
@@ -591,62 +540,43 @@ function endGame() {
 
 
   resultScore.textContent = score;
-
   resultHits.textContent = hits;
-
   resultShots.textContent = shots;
-
-  resultAccuracy.textContent =
-    accuracy + "%";
-
-  resultBest.textContent =
-    bestScore;
-
+  resultAccuracy.textContent = accuracy + "%";
+  resultBest.textContent = bestScore;
 
   newRecord.style.display =
     record ? "block" : "none";
 
+  bestMenu.textContent = bestScore;
 
-  bestMenu.textContent =
-    bestScore;
-
-
-  messageBox.style.display =
-    "block";
+  messageBox.style.display = "block";
 }
 
-
-/* REJOUER */
 
 function restartCurrentMode() {
 
   if (mode === "training") {
-
     startTraining();
-
   } else {
-
     startSolo();
   }
 }
 
 
-/* MENU */
-
 function backMenu() {
 
   clearInterval(timer);
+  clearInterval(targetMoveTimer);
 
   gameRunning = false;
 
   target.style.display = "none";
 
   game.style.display = "none";
-
   menu.style.display = "flex";
 
-  bestMenu.textContent =
-    bestScore;
+  bestMenu.textContent = bestScore;
 }
 
 </script>
