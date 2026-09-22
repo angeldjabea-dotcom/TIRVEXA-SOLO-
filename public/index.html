@@ -1,32 +1,187 @@
-<div id="hud">
-  <div class="hud-left">
-    <div class="player-icon">DJ</div>
-    <div>
-      <div class="hud-label">JOUEUR</div>
-      <div class="hud-player">DJABEA</div>
-    </div>
-  </div>
+<script>
+const scoreElement = document.getElementById("score");
+const timeElement = document.getElementById("time");
+const livesElement = document.getElementById("lives");
+const hitsElement = document.getElementById("hits");
 
-  <div class="hud-center">
-    <div class="hud-mode" id="modeText">SOLO</div>
-    <div class="hud-score" id="score">0</div>
-    <div class="hud-label">SCORE</div>
-  </div>
+const target = document.getElementById("target");
+const gameArea = document.getElementById("gameArea");
 
-  <div class="hud-right">
-    <div class="hud-stat">
-      <span>⏱</span>
-      <strong id="time">30</strong>
-    </div>
+const startBtn = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
 
-    <div class="hud-stat" id="livesBox">
-      <span>❤️</span>
-      <strong id="lives">❤️❤️❤️</strong>
-    </div>
+const message = document.getElementById("message");
+const gameOver = document.getElementById("gameOver");
+const finalScore = document.getElementById("finalScore");
 
-    <div class="hud-stat">
-      <span>🎯</span>
-      <strong id="hits">0</strong>
-    </div>
-  </div>
-</div>
+let score = 0;
+let hits = 0;
+let lives = 3;
+let time = 30;
+
+let gameRunning = false;
+let timer = null;
+let targetTimeout = null;
+
+/* Position aléatoire de la cible */
+function moveTarget() {
+
+  const areaWidth = gameArea.clientWidth;
+  const areaHeight = gameArea.clientHeight;
+
+  const targetSize = target.offsetWidth;
+
+  const minX = targetSize / 2;
+  const maxX = areaWidth - targetSize / 2;
+
+  const minY = targetSize / 2;
+  const maxY = areaHeight - targetSize / 2 - 80;
+
+  const x = Math.random() * (maxX - minX) + minX;
+  const y = Math.random() * (maxY - minY) + minY;
+
+  target.style.left = x + "px";
+  target.style.top = y + "px";
+
+  target.classList.add("active");
+
+  clearTimeout(targetTimeout);
+
+  targetTimeout = setTimeout(() => {
+
+    if (gameRunning) {
+      lives--;
+
+      updateHUD();
+
+      if (lives <= 0) {
+        endGame();
+      } else {
+        moveTarget();
+      }
+    }
+
+  }, 1800);
+}
+
+/* Mise à jour de l'affichage */
+function updateHUD() {
+
+  scoreElement.textContent = score;
+  hitsElement.textContent = hits;
+  timeElement.textContent = time;
+
+  livesElement.textContent =
+    "❤️".repeat(lives) +
+    "🖤".repeat(3 - lives);
+}
+
+/* Toucher la cible */
+function hitTarget(event) {
+
+  if (!gameRunning) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  score += 10;
+  hits++;
+
+  updateHUD();
+
+  target.classList.remove("active");
+
+  clearTimeout(targetTimeout);
+
+  moveTarget();
+}
+
+/* Tir à côté */
+function missShot(event) {
+
+  if (!gameRunning) return;
+
+  if (event.target === target) return;
+
+  lives--;
+
+  updateHUD();
+
+  if (lives <= 0) {
+    endGame();
+  }
+}
+
+/* Commencer */
+function startGame() {
+
+  score = 0;
+  hits = 0;
+  lives = 3;
+  time = 30;
+
+  gameRunning = true;
+
+  scoreElement.textContent = "0";
+  hitsElement.textContent = "0";
+  timeElement.textContent = "30";
+  livesElement.textContent = "❤️❤️❤️";
+
+  message.style.display = "none";
+  startBtn.style.display = "none";
+  gameOver.style.display = "none";
+
+  moveTarget();
+
+  clearInterval(timer);
+
+  timer = setInterval(() => {
+
+    time--;
+
+    timeElement.textContent = time;
+
+    if (time <= 0) {
+      endGame();
+    }
+
+  }, 1000);
+}
+
+/* Fin de partie */
+function endGame() {
+
+  gameRunning = false;
+
+  clearInterval(timer);
+  clearTimeout(targetTimeout);
+
+  target.classList.remove("active");
+
+  finalScore.textContent =
+    "SCORE : " + score;
+
+  gameOver.style.display = "flex";
+}
+
+/* Événements */
+startBtn.addEventListener("click", startGame);
+
+restartBtn.addEventListener("click", startGame);
+
+target.addEventListener("pointerdown", hitTarget);
+
+gameArea.addEventListener("pointerdown", missShot);
+
+/* Empêcher le bouton de déclencher un tir */
+startBtn.addEventListener("pointerdown", event => {
+  event.stopPropagation();
+});
+
+restartBtn.addEventListener("pointerdown", event => {
+  event.stopPropagation();
+});
+
+/* Initialisation */
+updateHUD();
+</script>
